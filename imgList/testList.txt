@@ -1,0 +1,12 @@
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_1.jpeg 0
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_2.jpeg 2
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_3.jpeg 3
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_4.jpeg 4
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_5.jpeg 5
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_6.jpeg 6
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_7.jpeg 7
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_8.jpeg 8
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_9.jpeg 9
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_10.jpeg 10
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_11.jpeg 11
+D:\ML_DATA\vidiDB\Augmented\1.AOIs\AOI_12.jpeg 12
