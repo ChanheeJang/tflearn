@@ -832,6 +832,10 @@ class ImagePreloader(Preloader):
         if grayscale:
             img = convert_color(img, 'L')
         img = pil_to_nparray(img)
+
+        #for i in range(0,12):
+        #    img=np.dstack( ( img, np.zeros((image_shape[0], image_shape[1])) ) )
+ 
         if normalize:
             img /= 255.
         return img

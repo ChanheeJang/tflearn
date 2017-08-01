@@ -322,7 +322,6 @@ class Trainer(object):
                     # which data input), so one epoch loop in a multi-inputs
                     # model is equal to max(data_input) size.
                     for batch_step in range(max_batches_len):
-
                         self.training_state.increaseStep()
                         self.training_state.resetGlobal()
 
@@ -342,7 +341,6 @@ class Trainer(object):
 
                             # Optimizer batch end
                             caller.on_sub_batch_end(self.training_state, i)
-
                         # All optimizers batch end
                         self.session.run(self.incr_global_step)
                         caller.on_batch_end(self.training_state, snapshot)
