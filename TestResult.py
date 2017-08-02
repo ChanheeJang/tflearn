@@ -87,8 +87,7 @@ test_x, test_y = image_preloader(test_files_list, image_shape=(224, 224),mode='f
 
 model.load(test_model_file)
 
-
-# Start Evaluating
+ # Start Evaluating
 score = model.evaluate(test_x,test_y,batch_size=batchNum)
 print("Test Accuracy : %0.4f%%" %(score[0]*100))
 

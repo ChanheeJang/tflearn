@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>578ebeab-2101-455a-bb09-26d97fd586b4</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>vgg_network_finetuning.py</StartupFile>
+    <StartupFile>MultiChannelVGG(old).py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -29,7 +29,10 @@
     <Compile Include="gen_file_list.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MultiChannelVGG.py">
+    <Compile Include="MultiChannel.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MultiChannelVGG%28old%29.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TestResult.py" />

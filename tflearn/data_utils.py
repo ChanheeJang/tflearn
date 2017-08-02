@@ -8,6 +8,7 @@ from PIL import Image
 import pickle
 import csv
 import warnings
+import cv2  ##--
 
 """
 Preprocessing provides some useful functions to preprocess data before
@@ -439,7 +440,7 @@ def get_img_channel(image_path):
 
 def image_preloader(target_path, image_shape, mode='file', normalize=True,
                     grayscale=False, categorical_labels=True,
-                    files_extension=None, filter_channel=False):
+                    files_extension=None, filter_channel=False,scaleMapNum=1):
     """ Image PreLoader.
 
     Create a python array (`Preloader`) that loads images on the fly (from
@@ -530,7 +531,7 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
                     labels.append(int(l[1]))
 
     n_classes = np.max(labels) + 1
-    X = ImagePreloader(images, image_shape, normalize, grayscale)
+    X = ImagePreloader(images, image_shape, normalize, grayscale,scaleMapNum)
     Y = LabelPreloader(labels, n_classes, categorical_labels)
 
     return X, Y
@@ -820,11 +821,11 @@ class Preloader(object):
 
 
 class ImagePreloader(Preloader):
-    def __init__(self, array, image_shape, normalize=True, grayscale=False):
-        fn = lambda x: self.preload(x, image_shape, normalize, grayscale)
+    def __init__(self, array, image_shape, normalize=True, grayscale=False, scaleMapNum=1):
+        fn = lambda x: self.preload(x, image_shape, normalize, grayscale,scaleMapNum)
         super(ImagePreloader, self).__init__(array, fn)
 
-    def preload(self, path, image_shape, normalize=True, grayscale=False):
+    def preload(self, path, image_shape, normalize=True, grayscale=False, scaleMapNum=1):
         img = load_image(path)
         width, height = img.size
         if width != image_shape[0] or height != image_shape[1]:
@@ -832,14 +833,25 @@ class ImagePreloader(Preloader):
         if grayscale:
             img = convert_color(img, 'L')
         img = pil_to_nparray(img)
+        #################################
+        if scaleMapNum > 1 and scaleMapNum < 5:
+            if grayscale: channel=1
+            else: channel =3
+        
+            stepSide= int(image_shape[0]/(scaleMapNum*2))
+        
+            for i in range(0,(scaleMapNum-1)*channel):
+                img=np.dstack((img, np.zeros((image_shape[0], image_shape[1]))))
 
-        #for i in range(0,12):
-        #    img=np.dstack( ( img, np.zeros((image_shape[0], image_shape[1])) ) )
- 
+            for i in range(scaleMapNum-1):
+                img[:,:,3*(i+1)]   = cv2.resize(img[stepSide*(i+1):image_shape[0]-stepSide*(i+1),stepSide*(i+1):image_shape[1]-stepSide*(i+1),0],(image_shape[0],image_shape[1]))
+                img[:,:,3*(i+1)+1] = cv2.resize(img[stepSide*(i+1):image_shape[0]-stepSide*(i+1),stepSide*(i+1):image_shape[1]-stepSide*(i+1),1],(image_shape[0],image_shape[1]))
+                img[:,:,3*(i+1)+2] = cv2.resize(img[stepSide*(i+1):image_shape[0]-stepSide*(i+1),stepSide*(i+1):image_shape[1]-stepSide*(i+1),2],(image_shape[0],image_shape[1]))
+        ###################################
         if normalize:
             img /= 255.
         return img
-
+ 
 
 class LabelPreloader(Preloader):
     def __init__(self, array, n_class=None, categorical_label=True):
