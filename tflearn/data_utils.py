@@ -819,7 +819,17 @@ class Preloader(object):
     def __len__(self):
         return len(self.array)
 
-
+###################################### scaleMapNum ################################################
+## if you enter integer, it will create (integer) number of scale maps evenly scaled respectively 
+##    ex)  if scaleMapNum = 4
+##           it will create scaleMap of 100%,  75%,  50%,  25%  respectively
+##
+## if you enter list, it will create scale maps of (listed number)%
+##    ex)   if scaleMapNum = [100, 90 ,80, 50]    NOTE that fist element must be 100
+##           it will create scaleMap of 100%, 90%, 80%, 50%  respectively
+##
+## Not passing any argument produce one single 100% image (no difference as original version)
+####################################################################################################
 class ImagePreloader(Preloader):
     def __init__(self, array, image_shape, normalize=True, grayscale=False, scaleMapNum=1):
         fn = lambda x: self.preload(x, image_shape, normalize, grayscale,scaleMapNum)
@@ -834,20 +844,31 @@ class ImagePreloader(Preloader):
             img = convert_color(img, 'L')
         img = pil_to_nparray(img)
         #################################
-        if scaleMapNum > 1 and scaleMapNum < 5:
-            if grayscale: channel=1
-            else: channel =3
-        
-            stepSide= int(image_shape[0]/(scaleMapNum*2))
-        
-            for i in range(0,(scaleMapNum-1)*channel):
-                img=np.dstack((img, np.zeros((image_shape[0], image_shape[1]))))
+        if type(scaleMapNum) is list or ( type(scaleMapNum) is int and scaleMapNum>1):
+            channel=3
+            if grayscale is True:
+                channel=1
+            stepSide=[]
+            if type(scaleMapNum) is int:
+                stepSide = np.linspace(0,image_shape[0],scaleMapNum*2+1,dtype=np.int64)
 
-            for i in range(scaleMapNum-1):
-                img[:,:,3*(i+1)]   = cv2.resize(img[stepSide*(i+1):image_shape[0]-stepSide*(i+1),stepSide*(i+1):image_shape[1]-stepSide*(i+1),0],(image_shape[0],image_shape[1]))
-                img[:,:,3*(i+1)+1] = cv2.resize(img[stepSide*(i+1):image_shape[0]-stepSide*(i+1),stepSide*(i+1):image_shape[1]-stepSide*(i+1),1],(image_shape[0],image_shape[1]))
-                img[:,:,3*(i+1)+2] = cv2.resize(img[stepSide*(i+1):image_shape[0]-stepSide*(i+1),stepSide*(i+1):image_shape[1]-stepSide*(i+1),2],(image_shape[0],image_shape[1]))
+                for i in range(0,(scaleMapNum-1)*channel):
+                    img=np.dstack((img, np.zeros((image_shape[0], image_shape[1]))))
+
+                scaleMapIndex=range(scaleMapNum-1)
+            else:
+                for i in range(len(scaleMapNum)):
+                    stepSide.append(int((100-scaleMapNum[i])*image_shape[0]/200))
+                for i in range((len(scaleMapNum)-1)*channel):
+                    img=np.dstack((img, np.zeros((image_shape[0], image_shape[1]))))
+                scaleMapIndex=range((len(scaleMapNum)-1))
+
+            for i in scaleMapIndex:
+                img[:,:,3*(i+1)]   = cv2.resize(img[stepSide[i+1]:image_shape[0]-stepSide[i+1],stepSide[i+1]:image_shape[1]-stepSide[i+1],0],(image_shape[0],image_shape[1]))
+                img[:,:,3*(i+1)+1] = cv2.resize(img[stepSide[i+1]:image_shape[0]-stepSide[i+1],stepSide[i+1]:image_shape[1]-stepSide[i+1],1],(image_shape[0],image_shape[1]))
+                img[:,:,3*(i+1)+2] = cv2.resize(img[stepSide[i+1]:image_shape[0]-stepSide[i+1],stepSide[i+1]:image_shape[1]-stepSide[i+1],2],(image_shape[0],image_shape[1]))
         ###################################
+
         if normalize:
             img /= 255.
         return img
