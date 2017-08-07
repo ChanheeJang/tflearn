@@ -11,7 +11,7 @@ import os
 
 def vgg16(input, num_class):
  
-    x = tflearn.conv_2d(input, 64, 3, activation='relu', scope='conv1_1')
+    x = tflearn.conv_2d(input, 64, 3, activation='relu',regularizer='L2', scope='conv1_1')
     x = tflearn.conv_2d(x, 64, 3, activation='relu', scope='conv1_2')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool1')
 
