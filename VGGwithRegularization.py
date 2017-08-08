@@ -4,41 +4,38 @@ Retraining (Finetuning) Example with vgg.tflearn. Using weights from VGG model t
 network for a new task (your own dataset).All weights are restored except
 last layer (softmax) that will be retrained to match the new task (finetuning).
 '''
-import tflearn
-from tflearn.data_preprocessing import ImagePreprocessing
-import os
-
 
 def vgg16(input, num_class):
     if TestMode:
         isRestore=True
     else:
         isRestore=False
-    x = tflearn.conv_2d(input, 64, 3, activation='relu', scope='conv1_1',restore=isRestore)
-    x = tflearn.conv_2d(x, 64, 3, activation='relu', scope='conv1_2',restore=isRestore)
+ 
+    x = tflearn.conv_2d(input, 64, 3, activation='relu',regularizer='L2', scope='conv1_1',restore=True)
+    x = tflearn.conv_2d(x, 64, 3, activation='relu', regularizer='L2',scope='conv1_2',restore=True)
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool1')
-    #x = tflearn.batch_normalization(x)
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm1')
 
-    x = tflearn.conv_2d(x, 128, 3, activation='relu', scope='conv2_1')
-    x = tflearn.conv_2d(x, 128, 3, activation='relu', scope='conv2_2')
+    x = tflearn.conv_2d(x, 128, 3, activation='relu',regularizer='L2', scope='conv2_1')
+    x = tflearn.conv_2d(x, 128, 3, activation='relu',regularizer='L2', scope='conv2_2')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool2')
-    #x = tflearn.batch_normalization(x)
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm2')
 
-    x = tflearn.conv_2d(x, 256, 3, activation='relu', scope='conv3_1')
-    x = tflearn.conv_2d(x, 256, 3, activation='relu', scope='conv3_2')
-    x = tflearn.conv_2d(x, 256, 3, activation='relu', scope='conv3_3')
+    x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer='L2', scope='conv3_1')
+    x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer='L2', scope='conv3_2')
+    x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer='L2', scope='conv3_3')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool3')
-    #x = tflearn.batch_normalization(x)
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm3')
 
-    x = tflearn.conv_2d(x, 512, 3, activation='relu', scope='conv4_1')
-    x = tflearn.conv_2d(x, 512, 3, activation='relu', scope='conv4_2')
-    x = tflearn.conv_2d(x, 512, 3, activation='relu', scope='conv4_3')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv4_1')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv4_2')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv4_3')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool4')
-    #x = tflearn.batch_normalization(x)
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm4')
 
-    x = tflearn.conv_2d(x, 512, 3, activation='relu', scope='conv5_1')
-    x = tflearn.conv_2d(x, 512, 3, activation='relu', scope='conv5_2')
-    x = tflearn.conv_2d(x, 512, 3, activation='relu', scope='conv5_3')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv5_1')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv5_2')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv5_3')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool5')
 
     x = tflearn.fully_connected(x, 4096, activation='relu', scope='fc6')
@@ -148,16 +145,20 @@ def TestAnalysis():
         print(resultImgDir+"TestResult_"+ModelName+".csv\n")
     print("Test Accuracy : " + str(Accuracy))
 
+import tflearn
+from tflearn.data_preprocessing import ImagePreprocessing
 
 DBdirectory = "C:/Users/ATI/Documents/ChanheeJean/vidiDB/MoreData/"
-ModelName = "MoreData(1scale)"
+ModelName = "MoreData2(1scale)"
 ####### Test Mode ########
-TestMode = False
-saveMismatch=False
+TestMode = True
+isSaveMismatch=True
+isPrecisionRecall=True
+
 testFiles_list =  DBdirectory+"TestImgList.txt" 
 saveMismatchDir =  DBdirectory
 TestModelPath = 'C:/Users/ATI/Documents/Visual Studio 2013/Projects/TensorPy/tfLearn/vgg-finetuning/FinalModel/'+ModelName
-Label=['AOI','xMark','missingSR','scratch','short','pinhole','masking','particle','blur','discolor','crack']
+Label=['AOI','xMark','missingSR','scratch','short','pinhole','masking','particle','blur','discolor','crack','good']
 
 ##########################
 
@@ -169,13 +170,11 @@ checkpointPath= 'C:/Users/ATI/Documents/Visual Studio 2013/Projects/TensorPy/tfL
 tensorboardPath = 'C:/Users/ATI/Documents/Visual Studio 2013/Projects/TensorPy/tfLearn/logs'
 
 pretrainedModel = "C:/Users/ATI/Documents/ChanheeJean/vidiDB/pretrainedModel/vgg16.tflearn"
-runID = 'vgg-moreData(1Scale)'
+runID = 'vgg-' +ModelName
 imgSize = (224,224)
 batchNum=64
-scaleMap=1
+scaleMap=1#[100,80,60,45,30]
 ##########################
-
- 
 
 if type(scaleMap) is int: 
     dstChannel = scaleMap*3
@@ -194,15 +193,22 @@ from tflearn.data_utils import image_preloader
 X, Y = image_preloader(files_list, image_shape=imgSize, mode='file',
                       categorical_labels=True, normalize=False,
                        files_extension=['.jpeg','.jpg', '.png'], filter_channel=True,scaleMapNum=scaleMap)  
- 
+
 # VGG preprocessing
 img_prep = ImagePreprocessing()
-img_prep.add_featurewise_zero_center(per_channel=True)  
+img_prep.add_featurewise_zero_center( mean=[100.06273651, 120.79055786, 101.59283447],   per_channel=True)  
+
+# moreData_Reg(1scale) : mean=[ 103.13388824 , 120.85018158 , 101.65916443]
+
 # MoreData(1scale): mean=[100.78845978, 123.16420746, 103.32084656]
-# MoreData: mean=[100.78860723 , 123.16408583  ,103.32078441, 106.14882834 ,129.98860877,
+# MoreData2(1scale): mean=[100.06273651, 120.79055786, 101.59283447]
+# MoreData(3sclae): mean=[100.78860723 , 123.16408583  ,103.32078441, 106.14882834 ,129.98860877z,
 #                 109.78620441  ,111.78917529 , 135.90339299 , 115.39193796,  116.14277245,
-#                 140.25949531 , 119.3330677 ,  120.58714975 , 145.25916486,  123.70046009] 
-# scaleMap : mean=[ 73.50690228,  89.05697014,  71.33842784 , 74.8667065 ,  90.21627509,   72.29435977 , 78.37673761 , 93.41886061 , 75.08530228]
+#                 140.25949531 , 119.3330677 ,  120.58714975 , 145.25916486,  123.70046009]  
+# MoreData2(3scale): mean=[ 103.06277477 , 120.79076593,  101.59317651  ,108.05693601,  126.41018044,
+#                   107.02081632,  114.68764277,  132.75292483 , 113.27404936,  121.24470792,
+#                   138.84813068 , 119.18205098 , 127.72194856,  145.45211363  ,125.65270177]
+ #scaleMap : mean=[ 73.50690228,  89.05697014,  71.33842784 , 74.8667065 ,  90.21627509,   72.29435977 , 78.37673761 , 93.41886061 , 75.08530228]
 
 # data augmentation
 img_aug = tflearn.ImageAugmentation()
@@ -215,7 +221,7 @@ img_aug.add_random_flip_updown()
 x = tflearn.input_data(shape=[None, imgSize[0], imgSize[1],dstChannel], name='input',
                        data_preprocessing=img_prep, data_augmentation=img_aug)
 
-softmax = vgg16(x,  len(Y[0]) )
+softmax = vgg16(x,  len(Y[0]) )  # len(Y[0]) : Number of classes
 
 SGD=tflearn.optimizers.SGD(learning_rate=0.05,lr_decay=0.92,decay_step=100)
 regression = tflearn.regression(softmax, optimizer=SGD,
@@ -226,24 +232,24 @@ if TestMode:
     model = tflearn.DNN(softmax, max_checkpoints=5, tensorboard_verbose=0)
     # Load Final model
     model.load(TestModelPath, weights_only=True)
-
+ 
     # Start Evaluating
+    print("Evaluating the TestSet .......")
     TestAnalysis()
 
 else: #TrainingMode
     model = tflearn.DNN(regression, checkpoint_path=checkpointPath,
                     max_checkpoints=5, tensorboard_verbose=0,
                     tensorboard_dir=tensorboardPath)
-
     # Load pre-trained model
-    print("Evaluating the TestSet .......")
-    model.load(pretrainedModel, weights_only=True)
+    model.load(pretrainedModel,weights_only=True)
  
     # Start finetuning
-    model.fit(X, Y, n_epoch=60, validation_set=0.15, shuffle=True,
+    model.fit(X, Y, n_epoch=20, validation_set=0.15, shuffle=True,
               show_metric=True, batch_size=batchNum, snapshot_epoch=True,
               snapshot_step=None, run_id=runID)
 
     model.save(finalModelPath)
 
- 
+
+

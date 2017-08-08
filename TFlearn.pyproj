@@ -29,6 +29,7 @@
     <Compile Include="gen_file_list.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="multiScale%28Train-Test%29.py" />
     <Compile Include="multiScaleInput.py">
       <SubType>Code</SubType>
     </Compile>
@@ -37,6 +38,7 @@
     </Compile>
     <Compile Include="TestResult.py" />
     <Compile Include="Train-Testset__Generator%2820170802%29.py" />
+    <Compile Include="VGGwithRegularization.py" />
     <Compile Include="vgg_network_finetuning.py" />
   </ItemGroup>
   <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />
