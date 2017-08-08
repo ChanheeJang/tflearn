@@ -10,32 +10,32 @@ def vgg16(input, num_class):
         isRestore=True
     else:
         isRestore=False
- 
-    x = tflearn.conv_2d(input, 64, 3, activation='relu',regularizer='L2', scope='conv1_1',restore=True)
-    x = tflearn.conv_2d(x, 64, 3, activation='relu', regularizer='L2',scope='conv1_2',restore=True)
+    Reg='L2'
+    x = tflearn.conv_2d(input, 64, 3, activation='relu',regularizer=Reg, scope='conv1_1',restore=isRestore)
+    x = tflearn.conv_2d(x, 64, 3, activation='relu', regularizer=Reg,scope='conv1_2',restore=isRestore)
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool1')
     #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm1')
 
-    x = tflearn.conv_2d(x, 128, 3, activation='relu',regularizer='L2', scope='conv2_1')
-    x = tflearn.conv_2d(x, 128, 3, activation='relu',regularizer='L2', scope='conv2_2')
+    x = tflearn.conv_2d(x, 128, 3, activation='relu',regularizer=Reg, scope='conv2_1')
+    x = tflearn.conv_2d(x, 128, 3, activation='relu',regularizer=Reg, scope='conv2_2')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool2')
     #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm2')
 
-    x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer='L2', scope='conv3_1')
-    x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer='L2', scope='conv3_2')
-    x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer='L2', scope='conv3_3')
+    x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer=Reg, scope='conv3_1')
+    x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer=Reg, scope='conv3_2')
+    x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer=Reg, scope='conv3_3')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool3')
     #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm3')
 
-    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv4_1')
-    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv4_2')
-    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv4_3')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv4_1')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv4_2')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv4_3')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool4')
     #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm4')
 
-    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv5_1')
-    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv5_2')
-    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer='L2', scope='conv5_3')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv5_1')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv5_2')
+    x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv5_3')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool5')
 
     x = tflearn.fully_connected(x, 4096, activation='relu', scope='fc6')
@@ -108,7 +108,8 @@ def TestAnalysis():
     Recall =     np.round(np.divide(truePositive,relevantElements),4)
     Precision =  np.round(np.divide(truePositive,selectedElements),4)
     Accuracy = round((count)/len(X)*100,4)  
-    
+    Fscore = 2*(Recall*Precision)/(Recall+Precision) 
+
     if isPrecisionRecall:
         whatIsRecall =    "A 클래스의 전체 이미지 중 실제로 맞춘 이미지의 비율 (Recall = A라고 맞춘 이미지 / A 클래스 전체 이미지)"
         whatIsPrecision = "A 라고 예측한 이미지 중 실제 A인 이미지의 비율   (Precision = A라고 맞춘 이미지 / A라고 예측한 이미지)"
@@ -129,6 +130,11 @@ def TestAnalysis():
         text_file.write("Precision,")
         for i in range(len(Y[0])):
             text_file.write(str(Precision[i])+",")
+
+        text_file.write("\n")
+        text_file.write("F-Score,")
+        for i in range(len(Y[0])):
+            text_file.write(str(Fscore[i])+",")
 
         text_file.write("\n")
         text_file.write("# of Imgs,")
