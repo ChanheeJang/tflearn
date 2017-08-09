@@ -1,37 +1,7 @@
-﻿from os import listdir
+﻿import os
+from os import listdir
 from os.path import isfile, join
-import os
 import sys
-"""
-    ------------ Organizing Your Training Images ------------
-    Specify Class label in front of sub-directory name.
-    Images belonging to same class do not necessarily be in the same directory
-    example: 
-    TrainingImgDirectory
-      -- 1.Cat
-            -- images
-            --  ...    
-      -- 2.Dog
-            -- images
-            --  ...    
-      -- 3.Frog
-            -- images
-            --  ...    
-      -- 2.Dog(more)
-            -- images
-            --  ...    
-    \nAll cat iamges will be labeled as 1, Dog as 2, Frog as 3, and Dog(more) as 2
-    \n** DO NOT PUT ANY OTHER DIRECTORIES OTHER THAN ACTUAL TRAINING CLASSES&IMAGES **
-
-
-    \n\n------------ Passing Arguments ------------
-    arg1 : Root Directory that contains all training class directories
-         -->  \"The absolute Path of TrainingImgDirectory\" in the example above
-    arg2 : Result file name
-         --> your file will be saved in Root Directory
-    If you just pass \'default\', it will take working directory as root directory,
-     and file will be saved as \"TrainingImgList.txt\" 
-"""
 
 
 def get_immediate_subdirectories(a_dir):
@@ -43,10 +13,11 @@ def generate(RootDirectory,SaveFileName):
  
     ImgDirectory=get_immediate_subdirectories(RootDirectory)
  
+    # remove folders that are not classes (starting with non-integer name)  
+    ImgDirectory=[x for x in ImgDirectory if (x.split('.', 1)[0]).isdigit()]
+    
     text_file = open(RootDirectory+"/"+SaveFileName+".txt", "w")
 
-
- 
     for classNum in range(len(ImgDirectory)):
         mypath = RootDirectory+"/"+ImgDirectory[classNum]
         onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
@@ -95,7 +66,7 @@ run=False
 
 if len(sys.argv) is 1:
     rootDirectory= os.getcwd()
-    saveFileName = "TrainingImgList"
+    saveFileName = "TestImgList"
     run=True
 
 elif sys.argv[1] == "help":
