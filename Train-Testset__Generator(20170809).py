@@ -19,7 +19,11 @@ def get_immediate_subdirectories(a_dir):
 def generate(RootDirectory=os.getcwd(),TestSetRatio=20):
  
     ImgDirectory=get_immediate_subdirectories(RootDirectory)
- 
+  
+    # remove folders that are not classes (starting with non-integer name)  
+    ImgDirectory=[x for x in ImgDirectory if (x.split('.', 1)[0]).isdigit()]
+    
+
     Training_text_file = open(RootDirectory+"/TrainingImgList.txt", "w")
     Test_text_file = open(RootDirectory+"/TestImgList.txt", "w")
 

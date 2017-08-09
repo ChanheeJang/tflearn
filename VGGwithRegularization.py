@@ -4,7 +4,9 @@ Retraining (Finetuning) Example with vgg.tflearn. Using weights from VGG model t
 network for a new task (your own dataset).All weights are restored except
 last layer (softmax) that will be retrained to match the new task (finetuning).
 '''
-
+import matplotlib.pyplot as plt
+import os
+import numpy as np 
 def vgg16(input, num_class):
     if TestMode:
         isRestore=True
@@ -52,35 +54,64 @@ def vgg16(input, num_class):
                                 restore=isRestore)
 
     return x
- 
-                        
 ##
-   
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues, saveDir=os.getcwd(), saveName=""):
+    import itertools
+    from sklearn.metrics import confusion_matrix
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+ 
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
 
+    #print(cm)
+
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, cm[i, j],
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.savefig(saveDir+'ConfusionMatrix_'+saveName+'.png')
+##
 def TestAnalysis():
     import cv2
-    import os
-    import numpy as np 
     resultImgDir=saveMismatchDir+"misMatch_"+ModelName+"/"
     if not os.path.exists(resultImgDir):
         os.makedirs(resultImgDir)
-    if not os.path.exists(resultImgDir+"F.Recall/") or not os.path.exists(resultImgDir+"F.Precision/"):
         os.makedirs(resultImgDir+"F.Recall/")
         os.makedirs(resultImgDir+"F.Precision/")
         for i in range(len(Label)):
             os.makedirs(resultImgDir+"F.Recall/"+str(i)+"."+Label[i]+"/")
             os.makedirs(resultImgDir+"F.Precision/"+str(i)+"."+Label[i]+"/")
+
+    classNum = len(Y[0])
     ## P&R
     import collections
     counter=collections.Counter(Y.array)
     relevantElements=np.array(list(counter.values()))
-    selectedElements=np.zeros(len(Y[0]))
-    truePositive=np.zeros(len(Y[0]))
+    selectedElements=np.zeros(classNum)
+    truePositive=np.zeros(classNum)
 
-
+    # Confusion Matrix
+    confusion = np.zeros((classNum,classNum),dtype=int)  # confusion[True][Predict]
+   
     count=0
     mismatched=0
-    maxNum=3
     for k in range(0,len(X)):
         predictedLabel = np.argmax(np.squeeze(model.predict([X[k]])) ,0) 
         trueLabel = np.argmax(Y[k],0)
@@ -95,13 +126,15 @@ def TestAnalysis():
      
         if predictedLabel == trueLabel:
             truePositive[predictedLabel]+=1     ## P&R
+            confusion[trueLabel][predictedLabel]+=1
             count+=1
         else:
+            confusion[trueLabel][predictedLabel]+=1
             if isSaveMismatch:
                 cv2.putText(img,Label[predictedLabel] ,(X[0].shape[0]-50,20),cv2.FONT_HERSHEY_COMPLEX,0.5,(0,0,255)) # put mispredicted label
            
                 tt=np.squeeze(model.predict([X[k]]))
-                for i in range(maxNum):
+                for i in range(3): # print Top-3 prediction
                     maxIndex=np.argmax(tt,0)
                     percent=tt[maxIndex]
                     tt[maxIndex]=0
@@ -130,40 +163,52 @@ def TestAnalysis():
         text_file = open(resultImgDir+"/TestResult_"+ModelName+".csv", "w")
 
         text_file.write("Class,")
-        for i in range(len(Y[0])):
+        for i in range(classNum):
             text_file.write(Label[i]+",")
  
              
         text_file.write("\n")
         text_file.write("Recall,")
-        for i in range(len(Y[0])):
+        for i in range(classNum):
             text_file.write(str(Recall[i])+",")
 
         text_file.write("\n")
         text_file.write("Precision,")
-        for i in range(len(Y[0])):
+        for i in range(classNum):
             text_file.write(str(Precision[i])+",")
 
         text_file.write("\n")
         text_file.write("F-Score,")
-        for i in range(len(Y[0])):
+        for i in range(classNum):
             text_file.write(str(Fscore[i])+",")
 
         text_file.write("\n")
         text_file.write("# of Imgs,")
-        for i in range(len(Y[0])):
+        for i in range(classNum):
             text_file.write(str(relevantElements[i])+",")
 
         text_file.write("\n\nRunID,," + runID+"\n")
         text_file.write("Accuracy,," + str(Accuracy)+"\n")
         text_file.write("Lowest Recall,," + str(Label[np.argmin(Recall)])+","+str(Recall[np.argmin(Recall)])+", Recall :"+whatIsRecall+"\n")
-        text_file.write("Lowest Precision,," + str(Label[np.argmin(Precision)])+","+str(Precision[np.argmin(Precision)])+", Precision :"+whatIsPrecision+"\n")
+        text_file.write("Lowest Precision,," + str(Label[np.argmin(Precision)])+","+str(Precision[np.argmin(Precision)])+", Precision :"+whatIsPrecision+"\n\n")
+
+        #Confusion Matrix
+        text_file.write("Confusion Mat.,")
+        for i in range(classNum):
+            text_file.write(Label[i]+",")
+        for i in range(classNum):
+            text_file.write("\n")
+            text_file.write(Label[i]+",")
+            for j in range(classNum):
+                 text_file.write(str(confusion[i][j])+",")
 
         text_file.close()
         print("Following file has been created :")
         print(resultImgDir+"TestResult_"+ModelName+".csv\n")
     print("Test Accuracy : " + str(Accuracy))
+    return confusion
 
+##
 import tflearn
 from tflearn.data_preprocessing import ImagePreprocessing
 
@@ -260,7 +305,10 @@ if TestMode:
  
     # Start Evaluating
     print("Evaluating the TestSet .......")
-    TestAnalysis()
+    confusionMatrix = TestAnalysis()
+    resultImgDir=saveMismatchDir+"misMatch_"+ModelName+"/"
+    plot_confusion_matrix(confusionMatrix,Label,title = ModelName, saveDir = resultImgDir, saveName=ModelName)
+ 
 
 else: #TrainingMode
     model = tflearn.DNN(regression, checkpoint_path=checkpointPath,

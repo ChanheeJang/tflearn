@@ -34,7 +34,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TestResult.py" />
-    <Compile Include="Train-Testset__Generator%2820170802%29.py" />
+    <Compile Include="Train-Testset__Generator%2820170809%29.py" />
     <Compile Include="VGGwithRegularization.py" />
     <Compile Include="vgg_network_finetuning.py" />
   </ItemGroup>
