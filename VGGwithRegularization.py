@@ -12,29 +12,33 @@ def vgg16(input, num_class):
         isRestore=False
     Reg='L2'
     x = tflearn.conv_2d(input, 64, 3, activation='relu',regularizer=Reg, scope='conv1_1',restore=isRestore)
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm1')
     x = tflearn.conv_2d(x, 64, 3, activation='relu', regularizer=Reg,scope='conv1_2',restore=isRestore)
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool1')
-    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm1')
 
     x = tflearn.conv_2d(x, 128, 3, activation='relu',regularizer=Reg, scope='conv2_1')
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm2')
     x = tflearn.conv_2d(x, 128, 3, activation='relu',regularizer=Reg, scope='conv2_2')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool2')
-    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm2')
 
     x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer=Reg, scope='conv3_1')
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm3')
     x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer=Reg, scope='conv3_2')
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm4')
     x = tflearn.conv_2d(x, 256, 3, activation='relu',regularizer=Reg, scope='conv3_3')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool3')
-    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm3')
 
     x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv4_1')
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm5')
     x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv4_2')
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm6')
     x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv4_3')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool4')
-    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm4')
 
     x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv5_1')
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm7')
     x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv5_2')
+    #x = tflearn.batch_normalization(x,restore=False, name='BatchNorm8')
     x = tflearn.conv_2d(x, 512, 3, activation='relu',regularizer=Reg, scope='conv5_3')
     x = tflearn.max_pool_2d(x, 2, strides=2, name='maxpool5')
 
@@ -48,6 +52,10 @@ def vgg16(input, num_class):
                                 restore=isRestore)
 
     return x
+ 
+                        
+##
+   
 
 def TestAnalysis():
     import cv2
@@ -56,9 +64,12 @@ def TestAnalysis():
     resultImgDir=saveMismatchDir+"misMatch_"+ModelName+"/"
     if not os.path.exists(resultImgDir):
         os.makedirs(resultImgDir)
+    if not os.path.exists(resultImgDir+"F.Recall/") or not os.path.exists(resultImgDir+"F.Precision/"):
+        os.makedirs(resultImgDir+"F.Recall/")
+        os.makedirs(resultImgDir+"F.Precision/")
         for i in range(len(Label)):
-            os.makedirs(resultImgDir+str(i)+"."+Label[i]+"/")
- 
+            os.makedirs(resultImgDir+"F.Recall/"+str(i)+"."+Label[i]+"/")
+            os.makedirs(resultImgDir+"F.Precision/"+str(i)+"."+Label[i]+"/")
     ## P&R
     import collections
     counter=collections.Counter(Y.array)
@@ -99,7 +110,9 @@ def TestAnalysis():
 
                 fileName = X.array[k].split('/', 50)[-1]
                 fileName = fileName.split('.',50)[0]
-                cv2.imwrite(resultImgDir+str(trueLabel)+"."+Label[trueLabel]+"/"+fileName+"_misMatched.jpg",img)
+                cv2.imwrite(resultImgDir+"F.Recall/"+str(trueLabel)+"."+Label[trueLabel]+"/"+fileName+"_misMatched.jpg",img)
+                cv2.imwrite(resultImgDir+"F.Precision/"+str(predictedLabel)+"."+Label[predictedLabel]+"/"+fileName+"_misMatched.jpg",img)
+
                 mismatched+=1
         if isSaveMismatch:
             print("Saving mismatched images.......  Good: "+str(count)+"|| Mismatch: "+ str(mismatched)+" in Total :"+str(len(X)))
@@ -154,8 +167,8 @@ def TestAnalysis():
 import tflearn
 from tflearn.data_preprocessing import ImagePreprocessing
 
-DBdirectory = "C:/Users/ATI/Documents/ChanheeJean/vidiDB/MoreData/"
-ModelName = "MoreData2(1scale)"
+DBdirectory = "C:/Users/ATI/Documents/ChanheeJean/vidiDB/MoreData2/"
+ModelName = "MoreData2(3scale)"
 ####### Test Mode ########
 TestMode = True
 isSaveMismatch=True
@@ -179,7 +192,7 @@ pretrainedModel = "C:/Users/ATI/Documents/ChanheeJean/vidiDB/pretrainedModel/vgg
 runID = 'vgg-' +ModelName
 imgSize = (224,224)
 batchNum=64
-scaleMap=1#[100,80,60,45,30]
+scaleMap=[100,80,60,45,30]#[100,80,60,45,30]
 ##########################
 
 if type(scaleMap) is int: 
@@ -202,9 +215,15 @@ X, Y = image_preloader(files_list, image_shape=imgSize, mode='file',
 
 # VGG preprocessing
 img_prep = ImagePreprocessing()
-img_prep.add_featurewise_zero_center( mean=[100.06273651, 120.79055786, 101.59283447],   per_channel=True)  
+img_prep.add_featurewise_zero_center(mean=[ 103.06277477 , 120.79076593,  101.59317651  ,108.05693601,  126.41018044,
+                   107.02081632,  114.68764277,  132.75292483 , 113.27404936,  121.24470792,
+                   138.84813068 , 119.18205098 , 127.72194856,  145.45211363  ,125.65270177],  per_channel=True)  
 
 # moreData_Reg(1scale) : mean=[ 103.13388824 , 120.85018158 , 101.65916443]
+# moreData_Reg(100-70-40sclae): mean=[ 103.13420982,  120.84993517,  101.65889782 , 111.14320464 , 129.45885459,
+  #110.04036431,  123.75994285,  141.37358798  ,121.67629442] 
+
+# moreData_batch(1scale) : mean = [ 103.13388824 , 120.85018158 ,101.65916443]
 
 # MoreData(1scale): mean=[100.78845978, 123.16420746, 103.32084656]
 # MoreData2(1scale): mean=[100.06273651, 120.79055786, 101.59283447]
@@ -251,7 +270,7 @@ else: #TrainingMode
     model.load(pretrainedModel,weights_only=True)
  
     # Start finetuning
-    model.fit(X, Y, n_epoch=20, validation_set=0.15, shuffle=True,
+    model.fit(X, Y, n_epoch=30, validation_set=0.15, shuffle=True,
               show_metric=True, batch_size=batchNum, snapshot_epoch=True,
               snapshot_step=None, run_id=runID)
 
